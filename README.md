@@ -7,7 +7,7 @@
 [![AI Concierge](https://img.shields.io/badge/AI%20Assistant-CineBot%20(Multi--Provider)-purple.svg)](https://github.com/Strata56/Cinepass)
 
 **Live Demo Website:** https://cinepass-7ybt.onrender.com/
-**GitHub Repository:** 
+**GitHub Repository:** https://github.com/krishna2650/Cinepass
 
 Cinepass is a complete, production-grade online cinema ticket booking and movie discovery web application inspired by BookMyShow, PVR Cinemas, Netflix, and IMDb. It combines cinematic UI/UX, multi-tier interactive seat selection, server-side atomic seat locking, Razorpay test payment verification, digital ticket issuance with verifiable QR codes, and an AI-powered cinema concierge (CineBot).
 
