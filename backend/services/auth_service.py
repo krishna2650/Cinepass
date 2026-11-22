@@ -63,7 +63,9 @@ def get_current_user() -> Optional[dict[str, Any]]:
 
     try:
         users = get_users_collection()
-        user = users.find_one({"_id": ObjectId(user_id)})
+        user = users.find_one({"_id": ObjectId(user_id)}) if ObjectId.is_valid(user_id) else None
+        if not user:
+            user = users.find_one({"_id": user_id}) or users.find_one({"id": user_id})
         if user:
             return serialize_doc(user)
     except Exception:
@@ -172,8 +174,13 @@ def update_profile(user_id: str, updates: dict[str, Any]) -> dict[str, Any]:
     if "preferences" in updates and isinstance(updates["preferences"], dict):
         update_data["preferences"] = updates["preferences"]
 
-    users.update_one({"_id": ObjectId(user_id)}, {"$set": update_data})
-    updated = users.find_one({"_id": ObjectId(user_id)})
+    query = {"_id": ObjectId(user_id)} if ObjectId.is_valid(user_id) else {"_id": user_id}
+    res = users.update_one(query, {"$set": update_data})
+    if res.matched_count == 0:
+        users.update_one({"_id": user_id}, {"$set": update_data})
+    updated = users.find_one(query) or users.find_one({"_id": user_id}) or users.find_one({"id": user_id})
+    if not updated:
+        raise AuthError("User not found.")
     serialized = serialize_doc(updated)
     if serialized:
         serialized.pop("password_hash", None)
