@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: cinepass
+    env: python
+    buildCommand: pip install -r backend/requirements.txt && python backend/seed_database.py
+    startCommand: gunicorn --chdir backend app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: FLASK_ENV
+        value: production
+      - key: FLASK_DEBUG
+        value: "false"
+      - key: ALLOW_FALLBACK_DB
+        value: "true"
+      - key: MONGODB_DATABASE
+        value: cinepass_db
+      - key: SECRET_KEY
+        generateValue: true
+      - key: RAZORPAY_KEY_ID
+        value: rzp_test_cinepass2026key
+      - key: RAZORPAY_KEY_SECRET
+        value: cinepass_test_secret_99887766

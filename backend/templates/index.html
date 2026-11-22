@@ -3,57 +3,890 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#080808">
-  <title>{{ app_name }}</title>
+  <meta name="theme-color" content="#07080b">
+  <meta name="description" content="Cinepass — Premier cinema ticket booking and movie discovery platform. Experience movies in IMAX, 4DX, and Dolby Atmos.">
+  <title>{{ app_name }} — Discover Movies &amp; Book Cinema Tickets</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-  <header class="site-header">
-    <a class="brand" href="#top" aria-label="CineSuggest AI home"><span class="brand-mark">▶</span><span>CineSuggest <b>AI</b></span></a>
-    <p>Discover your next movie with AI</p>
+  <!-- Top Global Navigation Bar -->
+  <header class="site-header" id="navbar">
+    <div class="header-container">
+      <div class="nav-left">
+        <a class="brand" href="/" aria-label="Cinepass Home">
+          <div class="brand-symbol">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="2" width="20" height="20" rx="4"></rect>
+              <path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 17h5M17 7h5"></path>
+            </svg>
+          </div>
+          <span class="brand-text">CINE<span>PASS</span></span>
+        </a>
+
+        <!-- City Selector Pill -->
+        <button id="city-selector-btn" class="city-selector-btn" type="button" aria-label="Select City">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+            <circle cx="12" cy="10" r="3"></circle>
+          </svg>
+          <span id="current-city-label">Mumbai</span>
+          <svg class="chevron" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Quick Search Bar with Live Autocomplete -->
+      <div class="nav-search-wrap">
+        <div class="search-input-box">
+          <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input id="global-search-input" type="search" placeholder="Search movies, actors, directors, genres..." autocomplete="off">
+          <kbd class="search-shortcut">Ctrl+K</kbd>
+        </div>
+        <div id="search-autocomplete-dropdown" class="search-autocomplete-dropdown" hidden></div>
+      </div>
+
+      <!-- Nav Links and Auth Actions -->
+      <nav class="nav-right">
+        <a href="#now-showing" class="nav-link">Movies</a>
+        <a href="#cinemas-section" class="nav-link">Cinemas</a>
+        <a href="#offers-section" class="nav-link">Offers</a>
+        <button id="nav-cinebot-btn" class="nav-link cinebot-nav-pill" type="button">
+          <span class="sparkle">✦</span> CineBot AI
+        </button>
+
+        <div id="auth-actions-wrap" class="auth-actions">
+          <button id="btn-open-login" class="btn-secondary" type="button">Sign In</button>
+          <button id="btn-open-register" class="btn-primary" type="button">Sign Up</button>
+        </div>
+
+        <div id="user-profile-menu-wrap" class="user-profile-menu-wrap" hidden>
+          <button id="user-avatar-btn" class="user-avatar-btn" type="button" aria-expanded="false">
+            <div id="user-avatar-initial" class="avatar-circle">U</div>
+            <span id="user-display-name" class="user-name-text">Account</span>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div id="user-dropdown-panel" class="user-dropdown-panel" hidden>
+            <div class="dropdown-header">
+              <strong id="dropdown-user-name">User</strong>
+              <small id="dropdown-user-email">user@cinepass.com</small>
+            </div>
+            <hr class="dropdown-divider">
+            <button class="dropdown-item" id="menu-my-bookings" type="button">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+              My Bookings &amp; Tickets
+            </button>
+            <button class="dropdown-item" id="menu-watchlist" type="button">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+              My Watchlist
+            </button>
+            <button class="dropdown-item" id="menu-profile-settings" type="button">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+              Account Settings
+            </button>
+            <button class="dropdown-item admin-only-item" id="menu-admin-portal" type="button" hidden>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+              Admin Portal
+            </button>
+            <hr class="dropdown-divider">
+            <button class="dropdown-item text-danger" id="menu-logout" type="button">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+              Sign Out
+            </button>
+          </div>
+        </div>
+      </nav>
+    </div>
   </header>
-  <main id="top">
-    <section class="hero" aria-labelledby="hero-title">
-      <div class="hero-content">
-        <p class="eyebrow">YOUR NEXT GREAT WATCH</p>
-        <h1 id="hero-title">Movie discovery,<br><em>with a little magic.</em></h1>
-        <p class="hero-copy">Search movies, explore details and get intelligent recommendations.</p>
-        <form id="search-form" class="search-form" novalidate>
-          <label class="sr-only" for="movie-search">Movie name</label>
-          <input id="movie-search" name="query" type="search" maxlength="100" placeholder="Search Interstellar, 3 Idiots, Dangal..." autocomplete="off" required>
-          <button type="submit" class="primary-button">Search movie <span aria-hidden="true">→</span></button>
-        </form>
-        <p id="search-status" class="status-message" role="status" aria-live="polite"></p>
+
+  <!-- Main Hero Carousel -->
+  <section class="hero-carousel-section" id="hero-carousel-wrap">
+    <div id="hero-slider" class="hero-slider">
+      <!-- Injected by JS -->
+      <div class="hero-skeleton-loader">
+        <div class="skeleton-shimmer"></div>
+      </div>
+    </div>
+    <!-- Carousel Indicators -->
+    <div id="hero-indicators" class="hero-indicators"></div>
+  </section>
+
+  <!-- Quick Genre Bar -->
+  <section class="genre-chips-container">
+    <div class="genre-scroll-wrap" id="genre-pills-bar">
+      <button class="genre-pill active" data-genre="all">All Movies</button>
+      <button class="genre-pill" data-genre="Action">Action</button>
+      <button class="genre-pill" data-genre="Science Fiction">Sci-Fi</button>
+      <button class="genre-pill" data-genre="Drama">Drama</button>
+      <button class="genre-pill" data-genre="Comedy">Comedy</button>
+      <button class="genre-pill" data-genre="Thriller">Thriller</button>
+      <button class="genre-pill" data-genre="Romance">Romance</button>
+      <button class="genre-pill" data-genre="Adventure">Adventure</button>
+      <button class="genre-pill" data-genre="Biography">Biography</button>
+      <button class="genre-pill" data-genre="Animation">Animation</button>
+    </div>
+  </section>
+
+  <main class="main-content">
+    <!-- Section: Now Showing -->
+    <section class="content-section" id="now-showing">
+      <div class="section-header">
+        <div>
+          <span class="badge-label">LIVE IN THEATRES</span>
+          <h2 class="section-title">Now Showing</h2>
+        </div>
+        <div class="section-controls">
+          <button class="btn-text-link" id="view-all-now-showing" type="button">Explore All Movies →</button>
+        </div>
+      </div>
+      <div id="now-showing-grid" class="movie-grid">
+        <!-- Rendered by JS -->
       </div>
     </section>
-    <section class="content-section" aria-labelledby="library-heading">
-      <div class="section-heading"><div><p class="eyebrow">YOUR LIBRARY</p><h2 id="library-heading">Explore movies</h2></div><p id="movie-count" class="muted"></p></div>
-      <div class="filter-bar" aria-label="Movie filters">
-        <label>Genre<select id="genre-filter"><option value="">All genres</option></select></label>
-        <label>Language<select id="language-filter"><option value="">All languages</option></select></label>
-        <label>Minimum rating<select id="rating-filter"><option value="0">Any rating</option><option value="5">5+</option><option value="6">6+</option><option value="7">7+</option><option value="8">8+</option></select></label>
+
+    <!-- Section: Trending Movies -->
+    <section class="content-section" id="trending-movies">
+      <div class="section-header">
+        <div>
+          <span class="badge-label">HOT TICKETS</span>
+          <h2 class="section-title">Trending This Week</h2>
+        </div>
       </div>
-      <p id="movies-status" class="status-message" role="status" aria-live="polite">Loading movie library...</p>
-      <div id="movie-grid" class="movie-grid" aria-live="polite"></div>
+      <div id="trending-grid" class="movie-grid">
+        <!-- Rendered by JS -->
+      </div>
     </section>
-    <section class="recommendation-section" aria-labelledby="recommend-heading">
-      <div class="recommendation-copy"><p class="eyebrow">AI CURATOR</p><h2 id="recommend-heading">What are you in the mood for?</h2><p>Tell us the feeling. We’ll return three thoughtful movie picks.</p></div>
-      <form id="recommend-form" class="recommend-form" novalidate>
-        <label>Mood<select id="mood" required><option value="">Choose a mood</option><option>Happy</option><option>Emotional</option><option>Romantic</option><option>Excited</option><option>Relaxed</option><option>Adventurous</option><option>Family</option></select></label>
-        <label>Preferred genre<input id="preferred-genre" maxlength="60" placeholder="e.g. Comedy"></label>
-        <label>Preferred language<input id="preferred-language" maxlength="60" placeholder="e.g. Hindi"></label>
-        <label class="full-width">Describe what you want to watch<textarea id="recommendation-request" maxlength="500" rows="3" placeholder="Suggest a funny Hindi movie for my family."></textarea></label>
-        <button id="recommend-button" class="primary-button" type="submit">Get recommendations <span aria-hidden="true">✦</span></button>
-      </form>
-      <p id="recommend-status" class="status-message" role="status" aria-live="polite"></p>
-      <div id="recommendation-results" class="recommendation-results"></div>
+
+    <!-- Section: Special Offers & Promo Banners -->
+    <section class="content-section offers-section" id="offers-section">
+      <div class="section-header">
+        <div>
+          <span class="badge-label">PROMOTIONS</span>
+          <h2 class="section-title">Exclusive Cinema Offers</h2>
+        </div>
+      </div>
+      <div class="offers-grid" id="offers-container">
+        <div class="offer-card offer-card-1">
+          <div class="offer-badge">20% OFF</div>
+          <h3>Cinepass Premiere Offer</h3>
+          <p>Get 20% instant discount up to ₹150 on your ticket purchase.</p>
+          <div class="coupon-code-pill" onclick="copyCoupon('CINEPASS20')">
+            <span>Use Code: <b>CINEPASS20</b></span>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          </div>
+        </div>
+        <div class="offer-card offer-card-2">
+          <div class="offer-badge">FLAT ₹100</div>
+          <h3>Blockbuster Weekend</h3>
+          <p>Flat ₹100 off on minimum 2 ticket bookings for IMAX and 4DX shows.</p>
+          <div class="coupon-code-pill" onclick="copyCoupon('FLAT100')">
+            <span>Use Code: <b>FLAT100</b></span>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          </div>
+        </div>
+        <div class="offer-card offer-card-3">
+          <div class="offer-badge">FIRST BOOKING</div>
+          <h3>Welcome to Cinepass</h3>
+          <p>Flat ₹50 discount on your first online ticket reservation.</p>
+          <div class="coupon-code-pill" onclick="copyCoupon('WELCOME50')">
+            <span>Use Code: <b>WELCOME50</b></span>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: Personalized AI Recommendations -->
+    <section class="content-section" id="personalized-section">
+      <div class="section-header">
+        <div>
+          <span class="badge-label">CURATED FOR YOU</span>
+          <h2 class="section-title">Recommended Movies</h2>
+          <p class="section-subtitle">Intelligently ranked according to your favorite genres, watchlist, and cinema trends.</p>
+        </div>
+      </div>
+      <div id="personalized-grid" class="movie-grid">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- Section: Discover All & Advanced Filters -->
+    <section class="content-section" id="discovery-section">
+      <div class="section-header">
+        <div>
+          <span class="badge-label">CATALOG SEARCH</span>
+          <h2 class="section-title">Explore Cinema Collection</h2>
+        </div>
+        <p id="discovery-total-count" class="muted-text">Showing all movies</p>
+      </div>
+
+      <!-- Advanced Filter Bar -->
+      <div class="filter-panel">
+        <div class="filter-group">
+          <label for="filter-genre">Genre</label>
+          <select id="filter-genre">
+            <option value="all">All Genres</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filter-language">Language</label>
+          <select id="filter-language">
+            <option value="all">All Languages</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filter-rating">Min Rating</label>
+          <select id="filter-rating">
+            <option value="0">Any Rating</option>
+            <option value="7">7.0+ ★</option>
+            <option value="8">8.0+ ★</option>
+            <option value="8.5">8.5+ ★</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filter-sort">Sort By</label>
+          <select id="filter-sort">
+            <option value="rating_desc">Highest Rated</option>
+            <option value="year_desc">Newest Release</option>
+            <option value="title_asc">Title (A-Z)</option>
+          </select>
+        </div>
+        <div class="filter-group-actions">
+          <button id="btn-reset-filters" class="btn-secondary btn-sm" type="button">Reset</button>
+        </div>
+      </div>
+
+      <div id="discovery-grid" class="movie-grid"></div>
+      <div id="discovery-pagination" class="pagination-bar" hidden></div>
+    </section>
+
+    <!-- Section: Featured Theatres & Cinemas -->
+    <section class="content-section cinemas-section" id="cinemas-section">
+      <div class="section-header">
+        <div>
+          <span class="badge-label">PREMIER THEATRES</span>
+          <h2 class="section-title">Featured Cinemas in <span id="cinema-city-heading">Mumbai</span></h2>
+          <p class="section-subtitle">Experience laser projection, IMAX screens, and luxury recliner seating.</p>
+        </div>
+      </div>
+      <div id="cinemas-grid" class="cinemas-grid">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- Section: Coming Soon -->
+    <section class="content-section" id="coming-soon">
+      <div class="section-header">
+        <div>
+          <span class="badge-label">UPCOMING RELEASES</span>
+          <h2 class="section-title">Coming Soon</h2>
+        </div>
+      </div>
+      <div id="coming-soon-grid" class="movie-grid">
+        <!-- Rendered by JS -->
+      </div>
     </section>
   </main>
-  <div id="movie-modal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modal-title">
-    <div class="modal-backdrop" data-close-modal></div>
-    <article class="modal-panel"><button class="icon-button modal-close" type="button" aria-label="Close movie details" data-close-modal>×</button><div id="modal-content"></div></article>
+
+  <!-- ================= MODALS & OVERLAYS ================= -->
+
+  <!-- City Selection Modal -->
+  <div id="city-modal" class="modal-overlay" hidden>
+    <div class="modal-card modal-sm">
+      <div class="modal-card-header">
+        <h3>Select Your City</h3>
+        <button class="btn-close-modal" type="button" data-close-modal="city-modal">&times;</button>
+      </div>
+      <div class="modal-card-body">
+        <p class="modal-desc">Select your city to view verified local cinemas, showtimes, and ticket pricing.</p>
+        <div class="city-search-box">
+          <input id="city-search-input" type="text" placeholder="Search for city...">
+        </div>
+        <div class="popular-cities-label">Popular Cities</div>
+        <div id="popular-cities-list" class="popular-cities-grid">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
   </div>
-  <footer>CineSuggest AI — Movie discovery powered by web data and artificial intelligence.</footer>
-  <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+
+  <!-- Movie Details Modal -->
+  <div id="movie-details-modal" class="modal-overlay" hidden>
+    <div class="modal-card modal-lg">
+      <button class="btn-close-modal modal-floating-close" type="button" data-close-modal="movie-details-modal">&times;</button>
+      <div id="movie-details-content" class="movie-details-container">
+        <!-- Injected by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Trailer Player Modal -->
+  <div id="trailer-modal" class="modal-overlay" hidden>
+    <div class="modal-card modal-video">
+      <button class="btn-close-modal modal-floating-close" type="button" data-close-modal="trailer-modal">&times;</button>
+      <div class="video-container" id="trailer-iframe-wrap"></div>
+    </div>
+  </div>
+
+  <!-- COMPLETE CINEMA TICKET BOOKING WORKFLOW MODAL -->
+  <div id="booking-modal" class="modal-overlay" hidden>
+    <div class="modal-card modal-booking">
+      <div class="booking-modal-header">
+        <div class="booking-step-indicator">
+          <div class="step-circle active" id="indicator-step-1">1</div>
+          <span class="step-line"></span>
+          <div class="step-circle" id="indicator-step-2">2</div>
+          <span class="step-line"></span>
+          <div class="step-circle" id="indicator-step-3">3</div>
+          <span class="step-line"></span>
+          <div class="step-circle" id="indicator-step-4">4</div>
+        </div>
+        <button class="btn-close-modal" type="button" data-close-modal="booking-modal">&times;</button>
+      </div>
+
+      <div class="booking-modal-body">
+        <!-- STEP 1: Showtime & Cinema Picker -->
+        <div id="booking-step-showtimes" class="booking-step-panel">
+          <div class="step-intro">
+            <h3 id="booking-movie-title">Movie Title</h3>
+            <p id="booking-movie-meta" class="muted-text">Select Date &amp; Cinema</p>
+          </div>
+          <!-- Date Tabs -->
+          <div class="date-tabs-container" id="booking-date-tabs"></div>
+          <!-- Cinema & Shows List -->
+          <div class="cinema-showtimes-list" id="booking-cinema-shows"></div>
+        </div>
+
+        <!-- STEP 2: Interactive Seat Map -->
+        <div id="booking-step-seats" class="booking-step-panel" hidden>
+          <div class="seatmap-header">
+            <div>
+              <button class="btn-back-step" id="btn-back-to-shows" type="button">← Back to Showtimes</button>
+              <h4 id="seatmap-cinema-info">Cinema &bull; Screen</h4>
+              <p id="seatmap-time-info" class="muted-text">Date &bull; Time</p>
+            </div>
+            <!-- Expiring Lock Timer -->
+            <div id="seat-lock-timer-box" class="lock-timer-badge" hidden>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              <span>Locked: <b id="lock-countdown">08:00</b></span>
+            </div>
+          </div>
+
+          <!-- Screen Visualization -->
+          <div class="cinema-screen-wrap">
+            <div class="cinema-screen-arc"></div>
+            <span class="screen-label">ALL EYES THIS WAY • SCREEN</span>
+          </div>
+
+          <!-- Seat Legend -->
+          <div class="seat-legend">
+            <div class="legend-item"><span class="seat-sample available"></span> Available</div>
+            <div class="legend-item"><span class="seat-sample selected"></span> Selected</div>
+            <div class="legend-item"><span class="seat-sample locked"></span> Temporarily Locked</div>
+            <div class="legend-item"><span class="seat-sample booked"></span> Booked</div>
+          </div>
+
+          <!-- Seat Matrix Grid -->
+          <div class="seat-matrix-scroll">
+            <div id="seat-layout-matrix" class="seat-layout-matrix">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+
+          <!-- Selected Seats Summary Bar -->
+          <div class="seat-selection-bar">
+            <div>
+              <span class="muted-label">Selected Seats</span>
+              <strong id="bar-selected-seats">None selected</strong>
+            </div>
+            <div>
+              <span class="muted-label">Tickets Subtotal</span>
+              <strong id="bar-subtotal-price" class="text-accent">₹0.00</strong>
+            </div>
+            <button id="btn-proceed-to-snacks" class="btn-primary" type="button" disabled>Continue to Snacks →</button>
+          </div>
+        </div>
+
+        <!-- STEP 3: Gourmet Snacks & Food Add-ons -->
+        <div id="booking-step-snacks" class="booking-step-panel" hidden>
+          <div class="step-intro">
+            <button class="btn-back-step" id="btn-back-to-seats" type="button">← Back to Seats</button>
+            <h3>Grab Your Cinema Snacks</h3>
+            <p class="muted-text">Skip the concession counter line. Delivered fresh to your seat!</p>
+          </div>
+          <div id="snacks-selection-grid" class="snacks-grid"></div>
+          <div class="snacks-bottom-bar">
+            <div>
+              <span class="muted-label">Snacks Added:</span>
+              <strong id="snacks-count-label">0 items (₹0.00)</strong>
+            </div>
+            <button id="btn-proceed-to-checkout" class="btn-primary" type="button">Proceed to Checkout →</button>
+          </div>
+        </div>
+
+        <!-- STEP 4: Review Summary, Coupon & Razorpay Payment -->
+        <div id="booking-step-checkout" class="booking-step-panel" hidden>
+          <div class="step-intro">
+            <button class="btn-back-step" id="btn-back-to-snacks" type="button">← Back to Snacks</button>
+            <h3>Review Order &amp; Pay</h3>
+            <p class="muted-text">Verified safe transaction with Razorpay test checkout</p>
+          </div>
+
+          <div class="checkout-grid">
+            <div class="checkout-left">
+              <!-- Itemized Breakdown -->
+              <div class="checkout-card">
+                <h4>Booking Summary</h4>
+                <div class="summary-line">
+                  <span id="chk-movie-name">Movie Name</span>
+                  <span id="chk-ticket-qty">0 Tickets</span>
+                </div>
+                <div class="summary-line text-sm muted-text">
+                  <span id="chk-seats-list">Seats: None</span>
+                  <span id="chk-ticket-subtotal">₹0.00</span>
+                </div>
+                <div id="chk-snacks-section" class="summary-line text-sm muted-text" hidden>
+                  <span>Cinema Food &amp; Drinks</span>
+                  <span id="chk-snacks-subtotal">₹0.00</span>
+                </div>
+                <hr class="summary-divider">
+                <div class="summary-line text-sm">
+                  <span>Convenience Fee</span>
+                  <span id="chk-convenience-fee">₹0.00</span>
+                </div>
+                <div class="summary-line text-sm">
+                  <span>GST (18%)</span>
+                  <span id="chk-gst">₹0.00</span>
+                </div>
+                <div id="chk-discount-line" class="summary-line text-success" hidden>
+                  <span>Coupon Discount</span>
+                  <span id="chk-discount">-₹0.00</span>
+                </div>
+                <hr class="summary-divider">
+                <div class="summary-line total-line">
+                  <strong>Total Amount Payable</strong>
+                  <strong id="chk-final-total" class="text-accent">₹0.00</strong>
+                </div>
+              </div>
+
+              <!-- Coupon Code Card -->
+              <div class="checkout-card coupon-box">
+                <label for="coupon-input">Have a Promo Coupon?</label>
+                <div class="coupon-input-wrap">
+                  <input id="coupon-input" type="text" placeholder="e.g. CINEPASS20" maxlength="20">
+                  <button id="btn-apply-coupon" class="btn-secondary" type="button">Apply</button>
+                </div>
+                <p id="coupon-status-msg" class="coupon-status-msg"></p>
+              </div>
+            </div>
+
+            <!-- Razorpay Checkout Simulator Box -->
+            <div class="checkout-right">
+              <div class="payment-method-box">
+                <div class="payment-header">
+                  <div class="rzp-badge">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+                    Razorpay Secure (Test Mode)
+                  </div>
+                  <span class="security-badge">🔒 256-Bit SSL Encrypted</span>
+                </div>
+
+                <div class="payment-form-sim">
+                  <p class="text-sm">Payment Order ID: <code id="rzp-order-id-label">Generating...</code></p>
+                  <p class="text-sm muted-text">In test mode, simulated card, UPI, and NetBanking verification will proceed automatically with verified backend cryptographic HMAC signature.</p>
+                  <button id="btn-confirm-payment" class="btn-pay-action" type="button">
+                    Pay <span id="btn-pay-amount-label">₹0.00</span> Securely
+                  </button>
+                  <button id="btn-cancel-checkout" class="btn-text-danger" type="button">Cancel &amp; Release Seats</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIGITAL TICKET MODAL -->
+  <div id="ticket-modal" class="modal-overlay" hidden>
+    <div class="modal-card modal-ticket">
+      <button class="btn-close-modal modal-floating-close" type="button" data-close-modal="ticket-modal">&times;</button>
+      <div id="digital-ticket-wrapper" class="digital-ticket-card">
+        <!-- Rendered by JS / Ticket Service -->
+      </div>
+      <div class="ticket-action-buttons">
+        <button id="btn-print-ticket" class="btn-primary" type="button">Print / Save Ticket</button>
+        <button id="btn-ticket-done" class="btn-secondary" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- USER AUTH MODAL (Login & Register) -->
+  <div id="auth-modal" class="modal-overlay" hidden>
+    <div class="modal-card modal-auth">
+      <div class="modal-card-header">
+        <h3 id="auth-modal-title">Sign In to Cinepass</h3>
+        <button class="btn-close-modal" type="button" data-close-modal="auth-modal">&times;</button>
+      </div>
+      <div class="modal-card-body">
+        <div class="auth-tabs">
+          <button class="auth-tab active" id="tab-login" type="button">Sign In</button>
+          <button class="auth-tab" id="tab-register" type="button">Create Account</button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="form-login" class="auth-form" novalidate>
+          <div class="form-group">
+            <label for="login-email">Email Address</label>
+            <input id="login-email" type="email" placeholder="you@example.com" required autocomplete="email">
+          </div>
+          <div class="form-group">
+            <label for="login-password">Password</label>
+            <input id="login-password" type="password" placeholder="••••••••" required autocomplete="current-password">
+          </div>
+          <p id="login-error-msg" class="form-error-msg"></p>
+          <button id="btn-submit-login" class="btn-primary btn-block" type="submit">Sign In</button>
+          <p class="auth-hint">Demo Admin: <code>admin@cinepass.com</code> / <code>CinePass@Admin2026</code></p>
+        </form>
+
+        <!-- Register Form -->
+        <form id="form-register" class="auth-form" hidden novalidate>
+          <div class="form-group">
+            <label for="reg-name">Full Name</label>
+            <input id="reg-name" type="text" placeholder="John Doe" required autocomplete="name">
+          </div>
+          <div class="form-group">
+            <label for="reg-email">Email Address</label>
+            <input id="reg-email" type="email" placeholder="you@example.com" required autocomplete="email">
+          </div>
+          <div class="form-group">
+            <label for="reg-phone">Phone Number (Optional)</label>
+            <input id="reg-phone" type="tel" placeholder="+91 98765 43210" autocomplete="tel">
+          </div>
+          <div class="form-group">
+            <label for="reg-password">Password (Minimum 6 characters)</label>
+            <input id="reg-password" type="password" placeholder="••••••••" required minlength="6" autocomplete="new-password">
+          </div>
+          <p id="reg-error-msg" class="form-error-msg"></p>
+          <button id="btn-submit-register" class="btn-primary btn-block" type="submit">Create Account</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- USER DASHBOARD MODAL -->
+  <div id="dashboard-modal" class="modal-overlay" hidden>
+    <div class="modal-card modal-dashboard">
+      <div class="modal-card-header">
+        <div class="dashboard-header-user">
+          <div class="avatar-circle lg" id="dash-avatar-circle">U</div>
+          <div>
+            <h3 id="dash-user-name">User Dashboard</h3>
+            <span id="dash-user-email" class="muted-text">user@cinepass.com</span>
+          </div>
+        </div>
+        <button class="btn-close-modal" type="button" data-close-modal="dashboard-modal">&times;</button>
+      </div>
+
+      <div class="dashboard-tabs">
+        <button class="dash-tab active" data-dash-tab="bookings" type="button">My Bookings</button>
+        <button class="dash-tab" data-dash-tab="watchlist" type="button">Watchlist</button>
+        <button class="dash-tab" data-dash-tab="profile" type="button">Profile Settings</button>
+      </div>
+
+      <div class="dashboard-body">
+        <!-- Bookings Tab -->
+        <div id="dash-tab-bookings" class="dash-panel">
+          <div id="user-bookings-list" class="user-bookings-grid">
+            <div class="empty-state">Loading your bookings...</div>
+          </div>
+        </div>
+
+        <!-- Watchlist Tab -->
+        <div id="dash-tab-watchlist" class="dash-panel" hidden>
+          <div id="user-watchlist-grid" class="movie-grid">
+            <div class="empty-state">Your watchlist is currently empty.</div>
+          </div>
+        </div>
+
+        <!-- Profile Tab -->
+        <div id="dash-tab-profile" class="dash-panel" hidden>
+          <form id="form-update-profile" class="profile-form">
+            <h4>Update Personal Details</h4>
+            <div class="form-group">
+              <label for="prof-name">Full Name</label>
+              <input id="prof-name" type="text" required>
+            </div>
+            <div class="form-group">
+              <label for="prof-phone">Phone Number</label>
+              <input id="prof-phone" type="tel">
+            </div>
+            <button class="btn-primary" type="submit">Save Profile Changes</button>
+          </form>
+
+          <form id="form-change-password" class="profile-form mt-4">
+            <h4>Change Password</h4>
+            <div class="form-group">
+              <label for="pwd-current">Current Password</label>
+              <input id="pwd-current" type="password" required>
+            </div>
+            <div class="form-group">
+              <label for="pwd-new">New Password (6+ characters)</label>
+              <input id="pwd-new" type="password" required minlength="6">
+            </div>
+            <button class="btn-secondary" type="submit">Update Password</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN PORTAL MODAL -->
+  <div id="admin-modal" class="modal-overlay" hidden>
+    <div class="modal-card modal-admin">
+      <div class="modal-card-header">
+        <div class="admin-header-title">
+          <span class="badge-label">ADMINISTRATIVE CONSOLE</span>
+          <h3>Cinepass Management Portal</h3>
+        </div>
+        <button class="btn-close-modal" type="button" data-close-modal="admin-modal">&times;</button>
+      </div>
+
+      <!-- Stats Overview Row -->
+      <div class="admin-stats-row" id="admin-stats-container">
+        <div class="stat-card">
+          <span class="stat-label">Total Revenue</span>
+          <strong id="stat-revenue" class="stat-val text-accent">₹0.00</strong>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Tickets Sold</span>
+          <strong id="stat-tickets" class="stat-val">0</strong>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Confirmed Bookings</span>
+          <strong id="stat-bookings" class="stat-val">0</strong>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Active Theatres</span>
+          <strong id="stat-cinemas" class="stat-val">0</strong>
+        </div>
+      </div>
+
+      <div class="admin-tabs">
+        <button class="admin-tab active" data-admin-tab="movies" type="button">Movies</button>
+        <button class="admin-tab" data-admin-tab="cinemas" type="button">Cinemas &amp; Screens</button>
+        <button class="admin-tab" data-admin-tab="shows" type="button">Schedule Shows</button>
+        <button class="admin-tab" data-admin-tab="coupons" type="button">Coupons</button>
+        <button class="admin-tab" data-admin-tab="bookings" type="button">Recent Transactions</button>
+      </div>
+
+      <div class="admin-body">
+        <!-- Admin Movies -->
+        <div id="admin-tab-movies" class="admin-panel">
+          <div class="panel-action-bar">
+            <h4>Movie Catalogue</h4>
+            <button id="btn-admin-add-movie" class="btn-primary btn-sm" type="button">+ Add New Movie</button>
+          </div>
+          <div id="admin-movies-table-wrap" class="table-responsive"></div>
+        </div>
+
+        <!-- Admin Cinemas -->
+        <div id="admin-tab-cinemas" class="admin-panel" hidden>
+          <div class="panel-action-bar">
+            <h4>Cinema Partners</h4>
+            <button id="btn-admin-add-cinema" class="btn-primary btn-sm" type="button">+ Add Cinema</button>
+          </div>
+          <div id="admin-cinemas-table-wrap" class="table-responsive"></div>
+        </div>
+
+        <!-- Admin Schedule Shows -->
+        <div id="admin-tab-shows" class="admin-panel" hidden>
+          <h4>Schedule New Showtime</h4>
+          <form id="form-admin-schedule-show" class="admin-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Movie</label>
+                <select id="adm-show-movie" required></select>
+              </div>
+              <div class="form-group">
+                <label>Cinema</label>
+                <select id="adm-show-cinema" required></select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Date</label>
+                <input id="adm-show-date" type="date" required>
+              </div>
+              <div class="form-group">
+                <label>Showtime</label>
+                <input id="adm-show-time" type="text" placeholder="e.g. 07:45 PM" required>
+              </div>
+            </div>
+            <button class="btn-primary" type="submit">Schedule Show</button>
+          </form>
+        </div>
+
+        <!-- Admin Coupons -->
+        <div id="admin-tab-coupons" class="admin-panel" hidden>
+          <h4>Create Discount Coupon</h4>
+          <form id="form-admin-add-coupon" class="admin-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Coupon Code</label>
+                <input id="adm-cp-code" type="text" placeholder="SUMMER50" required>
+              </div>
+              <div class="form-group">
+                <label>Discount Type</label>
+                <select id="adm-cp-type">
+                  <option value="percentage">Percentage (%)</option>
+                  <option value="fixed">Fixed Amount (₹)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Discount Value</label>
+                <input id="adm-cp-val" type="number" step="0.1" required>
+              </div>
+              <div class="form-group">
+                <label>Min Amount (₹)</label>
+                <input id="adm-cp-min" type="number" step="1" value="300">
+              </div>
+            </div>
+            <button class="btn-primary" type="submit">Publish Coupon</button>
+          </form>
+        </div>
+
+        <!-- Admin Recent Bookings -->
+        <div id="admin-tab-bookings" class="admin-panel" hidden>
+          <h4>Recent Bookings</h4>
+          <div id="admin-bookings-table-wrap" class="table-responsive"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOATING AI CINEBOT ASSISTANT DRAWER -->
+  <aside id="cinebot-drawer" class="cinebot-drawer" hidden>
+    <div class="cinebot-header">
+      <div class="cinebot-identity">
+        <div class="cinebot-avatar">✦</div>
+        <div>
+          <h4>CineBot AI</h4>
+          <small class="text-success">Online &bull; Cinema Concierge</small>
+        </div>
+      </div>
+      <button id="btn-close-cinebot" class="btn-icon" type="button" aria-label="Close CineBot">&times;</button>
+    </div>
+
+    <!-- Suggested Quick Prompts -->
+    <div class="cinebot-prompts-bar">
+      <button class="prompt-chip" type="button">What should I watch tonight?</button>
+      <button class="prompt-chip" type="button">Suggest a thriller</button>
+      <button class="prompt-chip" type="button">Best family movie</button>
+      <button class="prompt-chip" type="button">Showtimes for Interstellar</button>
+    </div>
+
+    <!-- Chat Messages Scroll -->
+    <div id="cinebot-chat-stream" class="cinebot-stream">
+      <div class="chat-bubble bot-bubble">
+        <p>Hello! I'm <b>CineBot</b>, your AI movie concierge. Ask me for personalized recommendations, movies matching your mood, or real-time showtimes in your city!</p>
+      </div>
+    </div>
+
+    <!-- Chat Input Box -->
+    <form id="cinebot-form" class="cinebot-input-form" novalidate>
+      <input id="cinebot-input" type="text" placeholder="Ask CineBot anything about movies..." autocomplete="off">
+      <button class="btn-send-cinebot" type="submit" aria-label="Send Message">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+      </button>
+    </form>
+  </aside>
+
+  <!-- Floating CineBot Launcher Button -->
+  <button id="floating-cinebot-trigger" class="floating-cinebot-trigger" type="button" aria-label="Open CineBot AI Assistant">
+    <span class="sparkle-icon">✦</span>
+    <span class="label">Ask CineBot</span>
+  </button>
+
+  <!-- Mobile Bottom App Navigation Bar (BookMyShow Mobile Experience) -->
+  <nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="Mobile Navigation">
+    <a href="#now-showing" class="mobile-nav-item active">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg>
+      <span>Movies</span>
+    </a>
+    <a href="#cinemas-section" class="mobile-nav-item">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+      <span>Cinemas</span>
+    </a>
+    <a href="#offers-section" class="mobile-nav-item">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 12 20 22 4 22 4 12"></polyline><rect x="2" y="7" width="20" height="5"></rect><line x1="12" y1="22" x2="12" y2="7"></line><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path></svg>
+      <span>Offers</span>
+    </a>
+    <button type="button" class="mobile-nav-item" id="mobile-nav-cinebot" aria-label="Open CineBot">
+      <span class="sparkle-icon" style="font-size:1.1rem;color:var(--primary);">✦</span>
+      <span>CineBot</span>
+    </button>
+    <button type="button" class="mobile-nav-item" id="mobile-nav-profile" aria-label="My Account">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+      <span>Account</span>
+    </button>
+  </nav>
+
+  <!-- Global Footer -->
+  <footer class="site-footer">
+    <div class="footer-container">
+      <div class="footer-brand-col">
+        <a class="brand" href="/">
+          <div class="brand-symbol sm">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="2" width="20" height="20" rx="4"></rect><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 17h5M17 7h5"></path></svg>
+          </div>
+          <span class="brand-text">CINE<span>PASS</span></span>
+        </a>
+        <p class="footer-desc">The ultimate cinema discovery and online ticket booking platform. Experience world-class films in IMAX, 4DX, and Dolby Atmos with seamless seat selection and digital ticketing.</p>
+        <div class="footer-badges">
+          <span class="badge-pill">Razorpay Verified</span>
+          <span class="badge-pill">256-Bit SSL</span>
+          <span class="badge-pill">AI Powered</span>
+        </div>
+      </div>
+      <div class="footer-links-col">
+        <h5>Quick Links</h5>
+        <a href="#now-showing">Now Showing</a>
+        <a href="#trending-movies">Trending Movies</a>
+        <a href="#cinemas-section">Partner Theatres</a>
+        <a href="#offers-section">Coupons &amp; Offers</a>
+      </div>
+      <div class="footer-links-col">
+        <h5>Supported Formats</h5>
+        <span>IMAX with Laser</span>
+        <span>MX4D / 4DX</span>
+        <span>Dolby Atmos 7.1</span>
+        <span>ScreenX 270°</span>
+        <span>Director's Cut VIP</span>
+      </div>
+      <div class="footer-links-col">
+        <h5>Cities</h5>
+        <span>Mumbai</span>
+        <span>Delhi-NCR</span>
+        <span>Bengaluru</span>
+        <span>Hyderabad</span>
+        <span>Chennai &bull; Pune</span>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Cinepass Technologies. All rights reserved. Built with Python, Flask, MongoDB &amp; Vanilla JavaScript.</p>
+    </div>
+  </footer>
+
+  <!-- Main Application Script -->
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>

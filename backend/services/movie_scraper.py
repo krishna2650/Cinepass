@@ -4,8 +4,14 @@ import re
 import time
 from urllib.parse import quote
 
-import requests
-from bs4 import BeautifulSoup
+try:
+    import requests
+    from bs4 import BeautifulSoup
+    RequestException = requests.RequestException
+except ImportError:
+    requests = None
+    BeautifulSoup = None
+    RequestException = Exception
 
 
 WIKIPEDIA_API = "https://en.wikipedia.org/w/api.php"
@@ -179,7 +185,7 @@ def fetch_movie_poster(query: str, timeout: int = 12) -> tuple[str, str]:
                 poster_url = f"https:{poster_url}"
         source_url = f"https://en.wikipedia.org/wiki/{quote(title.replace(' ', '_'))}"
         return poster_url, source_url
-    except (requests.RequestException, ValueError) as exc:
+    except (RequestException, ValueError) as exc:
         raise ScraperError("Movie poster could not be collected from Wikipedia.") from exc
 
 
@@ -199,7 +205,7 @@ def scrape_movie(query: str, timeout: int = 12) -> dict[str, object] | None:
         html = response.json().get("parse", {}).get("text", {}).get("*")
         if not html:
             return None
-    except (requests.RequestException, ValueError) as exc:
+    except (RequestException, ValueError) as exc:
         raise ScraperError("Movie information could not be collected from the web.") from exc
 
     soup = BeautifulSoup(html, "html.parser")

@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import re
 
-from openai import OpenAI
+
 
 from config import Config
 
@@ -70,6 +70,7 @@ Return only valid JSON in this exact format:
 
 Rules: return exactly three recommendations; recommend only real movies; keep each reason below 35 words; do not include markdown or text outside the JSON object."""
     try:
+        from openai import OpenAI
         client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=Config.OPENROUTER_API_KEY)
         response = client.chat.completions.create(
             model=Config.OPENROUTER_MODEL,

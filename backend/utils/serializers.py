@@ -18,7 +18,16 @@ def serialize_value(value: Any) -> Any:
     return value
 
 
-def serialize_movie(movie: dict[str, Any]) -> dict[str, Any]:
-    result = serialize_value(movie)
-    result["id"] = result.pop("_id", result.get("id"))
+def serialize_doc(doc: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not doc:
+        return None
+    result = serialize_value(doc)
+    if "_id" in result:
+        result["id"] = result.pop("_id")
+    elif "id" not in result and "_id" not in result:
+        result["id"] = None
     return result
+
+
+def serialize_movie(movie: dict[str, Any] | None) -> dict[str, Any] | None:
+    return serialize_doc(movie)
